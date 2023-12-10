@@ -3,7 +3,7 @@ import enum
 from typing import Annotated
 
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database import Base, str_256
 
@@ -32,6 +32,8 @@ class WorkersOrm(Base):
     id: Mapped[intpk]
     username: Mapped[str] = mapped_column()
 
+    resumes: Mapped[list["ResumeOrm"]] = relationship()
+
 
 class ResumeOrm(Base):
     __tablename__ = 'resumes'
@@ -42,3 +44,5 @@ class ResumeOrm(Base):
     worker_id: Mapped[int] = mapped_column(ForeignKey("workers.id", ondelete='CASCADE'))
     created_at: Mapped[created_at]
     updated_at: Mapped[updated_at]
+
+    workers: Mapped["WorkersOrm"] = relationship()

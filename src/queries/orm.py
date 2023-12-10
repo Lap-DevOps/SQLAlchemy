@@ -68,6 +68,17 @@ class SyncORM:
             result = session.execute(query)
             print(result.all())
 
+    @staticmethod
+    def select_workers_with_lazy_relationships():
+        with session_factory() as session:
+            query = (
+                select(WorkersOrm)
+            )
+        res = session.execute(query)
+        result = res.scalars().all()
+
+        worker1 = result[0].resumes
+
 
 class AsyncORM:
     @staticmethod
