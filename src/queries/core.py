@@ -1,7 +1,7 @@
-from sqlalchemy import text, select, update
+from sqlalchemy import text, select, update, insert
 
 from src.database import sync_engine, async_engine
-from src.models import metadata_obj, workers_table
+from src.models import metadata_obj, workers_table, ResumeOrm
 
 
 def get_123():
@@ -57,3 +57,33 @@ class SyncCore:
             )
             conn.execute(stmt2)
             conn.commit()
+
+
+class AsyncCore:
+
+    @staticmethod
+    async def create_tables():
+        async with async_engine.begin() as conn:
+            await conn.run_sync(metadata_obj.drop_all)
+            await conn.run_sync(metadata_obj.create_all)
+
+    @staticmethod
+    async def insert_additional_resumes():
+        async with async_engine.connect() as conn:
+            workers = [
+                {"username": "Artem"},  # id 3
+                {"username": "Roman"},  # id 4
+                {"username": "Petr"},  # id 5
+            ]
+            resumes = [
+                {"title": "Python программист", "compensation": 60000, "workload": "fulltime", "worker_id": 3},
+                {"title": "Machine Learning Engineer", "compensation": 70000, "workload": "parttime", "worker_id": 3},
+                {"title": "Python Data Scientist", "compensation": 80000, "workload": "parttime", "worker_id": 4},
+                {"title": "Python Analyst", "compensation": 90000, "workload": "fulltime", "worker_id": 4},
+                {"title": "Python Junior Developer", "compensation": 100000, "workload": "fulltime", "worker_id": 5},
+            ]
+            insert_workers = insert(workers_table).values(workers)
+            insert_resumes = insert(ResumeOrm).values(resumes)
+            await conn.execute(insert_workers)
+            await conn.execute(insert_resumes)
+            await conn.commit()
